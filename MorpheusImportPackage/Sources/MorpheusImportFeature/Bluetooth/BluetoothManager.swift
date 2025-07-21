@@ -22,7 +22,7 @@ final class BluetoothManager: NSObject {
     
     // MARK: - Core Bluetooth
     private var centralManager: CBCentralManager!
-    private var connectedPeripheral: CBPeripheral?
+    private(set) var connectedPeripheral: CBPeripheral?
     
     // MARK: - Standard BLE Heart Rate Service UUIDs
     private let heartRateServiceUUID = CBUUID(string: "0x180D")

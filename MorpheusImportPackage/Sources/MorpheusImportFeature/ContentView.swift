@@ -1,10 +1,13 @@
 import SwiftUI
+import CoreBluetooth
 
 public struct ContentView: View {
     @State private var bluetoothManager = BluetoothManager()
     @State private var healthKitManager = HealthKitManager()
+    @State private var workoutExplorer = WorkoutExplorer()
     @State private var showDataLogs = false
     @State private var showSessions = false
+    @State private var showWorkoutExplorer = false
     @State private var errorMessage: String?
     @State private var showError = false
     
@@ -25,6 +28,11 @@ public struct ContentView: View {
             .navigationTitle("Morpheus Import")
             .toolbar {
                 ToolbarItemGroup(placement: .navigationBarTrailing) {
+                    Button("Explorer") {
+                        showWorkoutExplorer = true
+                    }
+                    .disabled(bluetoothManager.connectedDevice == nil)
+                    
                     Button("Files") {
                         showSessions = true
                     }
@@ -40,6 +48,12 @@ public struct ContentView: View {
             }
             .sheet(isPresented: $showSessions) {
                 SessionFilesView(bluetoothManager: bluetoothManager)
+            }
+            .sheet(isPresented: $showWorkoutExplorer) {
+                WorkoutExplorerView(
+                    workoutExplorer: workoutExplorer,
+                    connectedPeripheral: bluetoothManager.connectedPeripheral
+                )
             }
             .alert("Error", isPresented: $showError) {
                 Button("OK") { }
@@ -481,4 +495,119 @@ struct ShareSheet: UIViewControllerRepresentable {
     }
     
     func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
+}
+
+// MARK: - Workout Explorer View
+
+struct WorkoutExplorerView: View {
+    @ObservedObject var workoutExplorer: WorkoutExplorer
+    let connectedPeripheral: CBPeripheral?
+    @Environment(\.dismiss) private var dismiss
+    @State private var showShareSheet = false
+    
+    var body: some View {
+        NavigationStack {
+            VStack(spacing: 20) {
+                if let peripheral = connectedPeripheral {
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("🔍 Workout Protocol Explorer")
+                            .font(.title2)
+                            .fontWeight(.bold)
+                        
+                        Text("Device: \(peripheral.name ?? "Unknown")")
+                            .font(.headline)
+                        
+                        Text("This tool will systematically test commands to discover the workout download protocol.")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    .padding()
+                    .background(Color(.systemGray6))
+                    .cornerRadius(12)
+                    
+                    if workoutExplorer.isExploring {
+                        VStack(spacing: 16) {
+                            ProgressView()
+                                .scaleEffect(1.5)
+                            
+                            Text("Exploring workout protocol...")
+                                .font(.headline)
+                            
+                            Text("Testing \(workoutExplorer.explorationLog.count) commands across multiple characteristics")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                        .padding()
+                    } else {
+                        VStack(spacing: 16) {
+                            Button(action: startExploration) {
+                                Label("Start Exploration", systemImage: "magnifyingglass")
+                                    .frame(maxWidth: .infinity)
+                            }
+                            .buttonStyle(.borderedProminent)
+                            .controlSize(.large)
+                            
+                            if !workoutExplorer.explorationLog.isEmpty {
+                                Button(action: { showShareSheet = true }) {
+                                    Label("Export Log", systemImage: "square.and.arrow.up")
+                                        .frame(maxWidth: .infinity)
+                                }
+                                .buttonStyle(.bordered)
+                                .controlSize(.large)
+                            }
+                        }
+                    }
+                    
+                    if !workoutExplorer.explorationLog.isEmpty {
+                        ScrollView {
+                            VStack(alignment: .leading, spacing: 4) {
+                                ForEach(workoutExplorer.explorationLog.indices, id: \.self) { index in
+                                    Text(workoutExplorer.explorationLog[index])
+                                        .font(.system(.caption, design: .monospaced))
+                                        .foregroundColor(.primary)
+                                        .frame(maxWidth: .infinity, alignment: .leading)
+                                }
+                            }
+                            .padding()
+                        }
+                        .background(Color(.systemGray6))
+                        .cornerRadius(8)
+                    }
+                    
+                    Spacer()
+                } else {
+                    ContentUnavailableView(
+                        "No Device Connected",
+                        systemImage: "bluetooth.slash",
+                        description: Text("Connect to a Morpheus device first")
+                    )
+                }
+            }
+            .padding()
+            .navigationTitle("Workout Explorer")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Done") { dismiss() }
+                }
+                
+                if workoutExplorer.isExploring {
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        Button("Stop") {
+                            workoutExplorer.stopExploration()
+                        }
+                        .foregroundColor(.red)
+                    }
+                }
+            }
+        }
+        .sheet(isPresented: $showShareSheet) {
+            ShareSheet(items: [workoutExplorer.getLogText()])
+        }
+    }
+    
+    private func startExploration() {
+        guard let peripheral = connectedPeripheral else { return }
+        workoutExplorer.startExploration(peripheral: peripheral)
+    }
 }
