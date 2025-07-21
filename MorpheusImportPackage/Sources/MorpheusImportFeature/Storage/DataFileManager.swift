@@ -98,7 +98,7 @@ final class DataFileManager {
         let timestamp = formatter.string(from: Date())
         let analysisEntry = "[\(timestamp)] \(analysis)\n"
         
-        await appendToFile(content: analysisEntry, fileURL: fileURL, isFirstWrite: false)
+        await appendToFile(content: analysisEntry, fileURL: fileURL, isFirstWrite: !FileManager.default.fileExists(atPath: fileURL.path))
     }
     
     // MARK: - Heart Rate Logging

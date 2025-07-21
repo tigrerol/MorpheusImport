@@ -145,10 +145,22 @@ final class WorkoutExplorer: ObservableObject {
         addLog("✍️ Found \(writeCharacteristics.count) write characteristics")
         
         for characteristic in writeCharacteristics {
+            // Check if we should stop exploration or if device disconnected
+            guard isExploring && peripheral.state == .connected else {
+                addLog("⚠️ Stopping exploration - device disconnected or exploration stopped")
+                return
+            }
+            
             let uuid = characteristic.uuid.uuidString.uppercased()
             addLog("📝 Testing commands on characteristic: \(uuid)")
             
             for command in explorationCommands {
+                // Check if we should stop exploration or if device disconnected
+                guard isExploring && peripheral.state == .connected else {
+                    addLog("⚠️ Stopping exploration - device disconnected or exploration stopped")
+                    return
+                }
+                
                 addLog("   → Sending: \(command.name) (\(command.data.map { String(format: "%02X", $0) }.joined(separator: " ")))")
                 
                 // Send command
