@@ -202,8 +202,13 @@ extension MorpheusDataParser {
     
     /// Generate a detailed analysis report of the parsed data
     func generateAnalysisReport(for morpheusData: MorpheusData) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss'Z'"
+        formatter.timeZone = TimeZone(abbreviation: "UTC")
+        let timestampString = formatter.string(from: morpheusData.timestamp)
+        
         var report = "=== Morpheus Data Analysis ===\n"
-        report += "Timestamp: \(morpheusData.timestamp.formatted(.iso8601))\n"
+        report += "Timestamp: \(timestampString)\n"
         report += "Characteristic: \(morpheusData.characteristicUUID)\n"
         report += "Raw Data: \(morpheusData.rawData.map { String(format: "%02X", $0) }.joined(separator: " "))\n"
         

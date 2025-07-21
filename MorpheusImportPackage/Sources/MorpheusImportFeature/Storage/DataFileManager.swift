@@ -32,7 +32,10 @@ final class DataFileManager {
     
     // MARK: - Session Management
     func createNewSession(deviceName: String) -> String {
-        let timestamp = Date().formatted(.iso8601)
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd'T'HH-mm-ss'Z'"
+        formatter.timeZone = TimeZone(abbreviation: "UTC")
+        let timestamp = formatter.string(from: Date())
         let sessionID = "\(deviceName)_\(timestamp)"
         logger.info("Created new session: \(sessionID)")
         return sessionID
@@ -89,7 +92,10 @@ final class DataFileManager {
         let filename = "\(sessionID)_analysis.txt"
         let fileURL = morpheusDataURL.appendingPathComponent(filename)
         
-        let timestamp = Date().formatted(.iso8601)
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss'Z'"
+        formatter.timeZone = TimeZone(abbreviation: "UTC")
+        let timestamp = formatter.string(from: Date())
         let analysisEntry = "[\(timestamp)] \(analysis)\n"
         
         await appendToFile(content: analysisEntry, fileURL: fileURL, isFirstWrite: false)
@@ -100,7 +106,11 @@ final class DataFileManager {
         let filename = "\(sessionID)_heartrates.csv"
         let fileURL = morpheusDataURL.appendingPathComponent(filename)
         
-        let csvRow = "\(timestamp.formatted(.iso8601)),\(heartRate)\n"
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss'Z'"
+        formatter.timeZone = TimeZone(abbreviation: "UTC")
+        let timestampString = formatter.string(from: timestamp)
+        let csvRow = "\(timestampString),\(heartRate)\n"
         let header = "Timestamp,HeartRate\n"
         
         await appendToFile(
@@ -158,11 +168,16 @@ final class DataFileManager {
     
     // MARK: - Data Formatting
     private func formatCSVRow(timestamp: Date, characteristicUUID: String, data: Data) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss'Z'"
+        formatter.timeZone = TimeZone(abbreviation: "UTC")
+        let timestampString = formatter.string(from: timestamp)
+        
         let hexString = data.map { String(format: "%02hhX", $0) }.joined(separator: " ")
         let asciiString = String(data: data, encoding: .ascii)?.replacingOccurrences(of: ",", with: "\\,") ?? "N/A"
         let binaryString = data.map { String($0, radix: 2).padded(toLength: 8, withPad: "0", startingAt: 0) }.joined(separator: " ")
         
-        return "\(timestamp.formatted(.iso8601)),\(characteristicUUID),\(data.count),\(hexString),\(asciiString),\(binaryString)\n"
+        return "\(timestampString),\(characteristicUUID),\(data.count),\(hexString),\(asciiString),\(binaryString)\n"
     }
     
     private func createCSVHeader() -> String {

@@ -171,13 +171,18 @@ final class WorkoutExplorer: ObservableObject {
     private func generateExplorationReport() async {
         addLog("📊 Phase 3: Generating exploration report...")
         
+        let reportFormatter = DateFormatter()
+        reportFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss'Z'"
+        reportFormatter.timeZone = TimeZone(abbreviation: "UTC")
+        let reportTimestamp = reportFormatter.string(from: Date())
+        
         let report = """
         
         =====================================
         MORPHEUS WORKOUT EXPLORATION REPORT
         =====================================
         Device: \(peripheral?.name ?? "Unknown")
-        Timestamp: \(Date().formatted(.iso8601))
+        Timestamp: \(reportTimestamp)
         
         TESTED CHARACTERISTICS:
         \(knownCharacteristics.map { "- \($0.key): \($0.value.purpose)" }.joined(separator: "\n"))
@@ -203,7 +208,11 @@ final class WorkoutExplorer: ObservableObject {
         addLog(report)
         
         // Save report to file
-        let sessionID = "WorkoutExploration_\(Date().formatted(.iso8601))"
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd'T'HH-mm-ss'Z'"
+        formatter.timeZone = TimeZone(abbreviation: "UTC")
+        let timestamp = formatter.string(from: Date())
+        let sessionID = "WorkoutExploration_\(timestamp)"
         await fileManager.logAnalysis(report, sessionID: sessionID)
         
         addLog("💾 Report saved to session: \(sessionID)")
