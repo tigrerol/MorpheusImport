@@ -1,0 +1,50 @@
+Started scanning for heart rate monitors
+Discovered device: M7-11954 (RSSI: -38)
+Stopped scanning
+Attempting to connect to M7-11954
+Stopped scanning
+Attempting to connect to M7-11954
+Connected to M7-11954
+Discovered 5 services
+Service: 180D
+Service: 180F
+Service: 180A
+Service: FC00
+Service: FD00
+Service 180D has 2 characteristics
+  Characteristic: 2A37 - Properties: CBCharacteristicProperties(rawValue: 16)
+  Characteristic: 2A38 - Properties: CBCharacteristicProperties(rawValue: 2)
+Service 180F has 1 characteristics
+  Characteristic: 2A19 - Properties: CBCharacteristicProperties(rawValue: 18)
+Service 180A has 4 characteristics
+  Characteristic: 2A25 - Properties: CBCharacteristicProperties(rawValue: 2)
+  Characteristic: 2A27 - Properties: CBCharacteristicProperties(rawValue: 2)
+  Characteristic: 2A26 - Properties: CBCharacteristicProperties(rawValue: 2)
+  Characteristic: 2A28 - Properties: CBCharacteristicProperties(rawValue: 2)
+Service FC00 has 2 characteristics
+  Characteristic: FC20 - Properties: CBCharacteristicProperties(rawValue: 16)
+  Characteristic: FC21 - Properties: CBCharacteristicProperties(rawValue: 4)
+Service FD00 has 4 characteristics
+  Characteristic: FD09 - Properties: CBCharacteristicProperties(rawValue: 16)
+  Characteristic: FD0A - Properties: CBCharacteristicProperties(rawValue: 4)
+  Characteristic: FD15 - Properties: CBCharacteristicProperties(rawValue: 16)
+  Characteristic: FD16 - Properties: CBCharacteristicProperties(rawValue: 4)
+Logged data from 2A38: 01
+Logged data from 2A19: 64
+Logged data from 2A25: 31 31 39 35 34
+Logged data from 2A27: 56 31 2E 30 2E 30
+Logged data from 2A26: 56 31 2E 31 2E 34
+Logged data from 2A28: 56 31 2E 31 2E 34
+Logged data from FC20: 01 0A C6 4E 4D 2C FB 02 8A 1E AF 3C 00 28
+Logged data from 2A19: 64
+Logged data from FC20: 01 0A C6 4E 4D 2C FB 02 8A 1E AF 3C 00 28
+Logged data from FC20: 01 0A C6 4E 4D 2C FB 02 8A 1E AF 3C 00 28
+Logged data from 2A19: 64
+Logged data from FC20: 01 0A C6 4E 4D 2C FB 02 8A 1E AF 3C 00 28
+Logged data from FC20: 01 0A C6 4E 4D 2C FB 02 8A 1E AF 3C 00 28
+Logged data from 2A19: 64
+Logged data from FC20: 01 0A C6 4E 4D 2C FB 02 8A 1E AF 3C 00 28
+Logged data from FC20: 01 0A C6 4E 4D 2C FB 02 8A 1E AF 3C 00 28
+Logged data from 2A19: 64
+Logged data from FC20: 01 0A C6 4E 4D 2C FB 02 8A 1E AF 3C 00 28
+Disconnected with error: The specified device has disconnected from us.

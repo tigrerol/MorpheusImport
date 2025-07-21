@@ -16,8 +16,9 @@ final class BluetoothManager: NSObject {
     var dataLogs: [DataLog] = []
     var currentSessionID: String?
     
-    // MARK: - File Management
+    // MARK: - File Management & Parsing
     private let fileManager = DataFileManager()
+    private let morpheusParser = MorpheusDataParser()
     
     // MARK: - Core Bluetooth
     private var centralManager: CBCentralManager!
@@ -332,57 +333,32 @@ extension BluetoothManager: CBPeripheralDelegate {
                 }
             }
             
-            // Process standard heart rate measurement
-            if characteristicUUIDString == self.heartRateMeasurementCharacteristicUUID.uuidString {
-                self.parseHeartRateMeasurement(data)
+            // Parse data using Morpheus parser
+            if let parsedData = self.morpheusParser.parseCharacteristicData(data, characteristicUUID: characteristicUUIDString) {
+                // Update heart rate if parsed
+                if let heartRate = parsedData.heartRate {
+                    self.lastHeartRate = heartRate
+                    self.logger.info("Updated heart rate: \(heartRate) bpm from \(characteristicUUIDString)")
+                    
+                    // Log heart rate to file
+                    if let sessionID = self.currentSessionID {
+                        Task {
+                            await self.fileManager.logHeartRate(heartRate, sessionID: sessionID)
+                        }
+                    }
+                }
+                
+                // Log analysis report for Morpheus data
+                if let sessionID = self.currentSessionID {
+                    let analysisReport = self.morpheusParser.generateAnalysisReport(for: parsedData)
+                    Task {
+                        await self.fileManager.logAnalysis(analysisReport, sessionID: sessionID)
+                    }
+                }
             }
         }
     }
     
-    // MARK: - Heart Rate Parsing (Standard BLE Format)
-    private func parseHeartRateMeasurement(_ data: Data) {
-        guard data.count >= 2 else { return }
-        
-        let bytes = [UInt8](data)
-        let flags = bytes[0]
-        
-        // Check if heart rate format is 8-bit or 16-bit
-        let isHeartRate16Bit = (flags & 0x01) != 0
-        
-        let heartRate: Int
-        if isHeartRate16Bit {
-            heartRate = Int(bytes[1]) | (Int(bytes[2]) << 8)
-        } else {
-            heartRate = Int(bytes[1])
-        }
-        
-        lastHeartRate = heartRate
-        logger.info("Heart rate: \(heartRate) bpm")
-        
-        // Log heart rate to file
-        if let sessionID = self.currentSessionID {
-            Task {
-                await self.fileManager.logHeartRate(heartRate, sessionID: sessionID)
-            }
-        }
-        
-        // Check for RR intervals (for HRV calculation)
-        let hasRRInterval = (flags & 0x10) != 0
-        if hasRRInterval {
-            var index = isHeartRate16Bit ? 3 : 2
-            var rrIntervals: [Int] = []
-            
-            while index < data.count - 1 {
-                let rrInterval = Int(bytes[index]) | (Int(bytes[index + 1]) << 8)
-                rrIntervals.append(rrInterval)
-                index += 2
-            }
-            
-            if !rrIntervals.isEmpty {
-                logger.info("RR intervals: \(rrIntervals.map { "\($0)ms" }.joined(separator: ", "))")
-            }
-        }
-    }
 }
 
 // MARK: - Supporting Types
