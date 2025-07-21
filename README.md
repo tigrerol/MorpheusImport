@@ -1,125 +1,144 @@
-# MorpheusImport - iOS App
+# MorpheusImport
 
-A modern iOS application using a **workspace + SPM package** architecture for clean separation between app shell and feature code.
+iOS app for reverse engineering and importing Morpheus heart rate monitor data into HealthKit
 
-## AI Assistant Rules Files
+## Overview
 
-This template includes **opinionated rules files** for popular AI coding assistants. These files establish coding standards, architectural patterns, and best practices for modern iOS development using the latest APIs and Swift features.
+MorpheusImport is a modern iOS application designed to connect to Morpheus heart rate monitors, capture raw Bluetooth Low Energy (BLE) data for reverse engineering purposes, and import processed heart rate data into Apple HealthKit.
 
-### Included Rules Files
-- **Claude Code**: `CLAUDE.md` - Claude Code rules
-- **Cursor**: `.cursor/*.mdc` - Cursor-specific rules
-- **GitHub Copilot**: `.github/copilot-instructions.md` - GitHub Copilot rules
+## Features
 
-### Customization Options
-These rules files are **starting points** - feel free to:
-- ✅ **Edit them** to match your team's coding standards
-- ✅ **Delete them** if you prefer different approaches
-- ✅ **Add your own** rules for other AI tools
-- ✅ **Update them** as new iOS APIs become available
+### 🔬 Reverse Engineering Capabilities
+- **Real-time BLE Data Capture**: Logs all characteristic updates with timestamps
+- **Multiple Export Formats**: CSV (human-readable), binary files, analysis logs
+- **Session Management**: Organized data collection sessions for each device connection
+- **Comprehensive Logging**: Hex, ASCII, binary, and timestamped data for thorough analysis
 
-### What Makes These Rules Opinionated
-- **No ViewModels**: Embraces pure SwiftUI state management patterns
-- **Swift 6+ Concurrency**: Enforces modern async/await over legacy patterns
-- **Latest APIs**: Recommends iOS 18+ features with optional iOS 26 guidelines
-- **Testing First**: Promotes Swift Testing framework over XCTest
-- **Performance Focus**: Emphasizes @Observable over @Published for better performance
+### 💓 Heart Rate Monitoring
+- **Standard BLE Support**: Compatible with standard heart rate service (0x180D)
+- **HealthKit Integration**: Secure import of heart rate data to Apple Health
+- **Real-time Display**: Live heart rate monitoring during connection
 
-**Note for AI assistants**: You MUST read the relevant rules files before making changes to ensure consistency with project standards.
+### 📱 Modern iOS App
+- **SwiftUI Interface**: Clean, intuitive user interface
+- **Swift 6 Concurrency**: Modern async/await patterns with strict concurrency compliance
+- **iOS 17+ Support**: Takes advantage of latest iOS APIs and features
 
-## Project Architecture
+## Technical Architecture
 
+### Project Structure
 ```
 MorpheusImport/
 ├── MorpheusImport.xcworkspace/              # Open this file in Xcode
 ├── MorpheusImport.xcodeproj/                # App shell project
 ├── MorpheusImport/                          # App target (minimal)
-│   ├── Assets.xcassets/                # App-level assets (icons, colors)
-│   ├── MorpheusImportApp.swift              # App entry point
-│   └── MorpheusImport.xctestplan            # Test configuration
+│   ├── Assets.xcassets/                     # App-level assets
+│   └── MorpheusImportApp.swift              # App entry point
 ├── MorpheusImportPackage/                   # 🚀 Primary development area
-│   ├── Package.swift                   # Package configuration
-│   ├── Sources/MorpheusImportFeature/       # Your feature code
-│   └── Tests/MorpheusImportFeatureTests/    # Unit tests
-└── MorpheusImportUITests/                   # UI automation tests
+│   ├── Sources/MorpheusImportFeature/       # Feature implementation
+│   │   ├── Bluetooth/BluetoothManager.swift     # BLE management
+│   │   ├── HealthKit/HealthKitManager.swift     # HealthKit integration
+│   │   ├── Storage/DataFileManager.swift        # File system storage
+│   │   └── ContentView.swift                    # Main UI
+│   └── Tests/                               # Unit tests
+└── Config/                                  # Build configuration
+    ├── MorpheusImport.entitlements          # App capabilities
+    └── *.xcconfig                           # Build settings
 ```
 
-## Key Architecture Points
+### Key Components
 
-### Workspace + SPM Structure
-- **App Shell**: `MorpheusImport/` contains minimal app lifecycle code
-- **Feature Code**: `MorpheusImportPackage/Sources/MorpheusImportFeature/` is where most development happens
-- **Separation**: Business logic lives in the SPM package, app target just imports and displays it
+**BluetoothManager**
+- BLE device discovery and connection
+- Raw data logging for reverse engineering
+- Standard heart rate protocol parsing
+- Swift 6 concurrency compliance
 
-### Buildable Folders (Xcode 16)
-- Files added to the filesystem automatically appear in Xcode
-- No need to manually add files to project targets
-- Reduces project file conflicts in teams
+**HealthKitManager**  
+- Secure heart rate data import
+- Privacy-compliant authorization flow
+- Batch data writing capabilities
 
-## Development Notes
+**DataFileManager**
+- File system storage with session management
+- Multiple export formats (CSV, binary, analysis)
+- Organized data structure for analysis
 
-### Code Organization
-Most development happens in `MorpheusImportPackage/Sources/MorpheusImportFeature/` - organize your code as you prefer.
+## Data Formats
 
-### Public API Requirements
-Types exposed to the app target need `public` access:
-```swift
-public struct NewView: View {
-    public init() {}
-    
-    public var body: some View {
-        // Your view code
-    }
-}
-```
+### Raw Data Logging
+- `sessionID_raw.csv` - Human-readable hex, ASCII, binary data
+- `sessionID_characteristicUUID_binary.dat` - Pure binary with timestamps
+- `sessionID_heartrates.csv` - Processed heart rate values
+- `sessionID_analysis.txt` - Connection events and notes
 
-### Adding Dependencies
-Edit `MorpheusImportPackage/Package.swift` to add SPM dependencies:
-```swift
-dependencies: [
-    .package(url: "https://github.com/example/SomePackage", from: "1.0.0")
-],
-targets: [
-    .target(
-        name: "MorpheusImportFeature",
-        dependencies: ["SomePackage"]
-    ),
-]
-```
+### Storage Location
+Files are saved to: `Documents/MorpheusData/`
+Example: `Morpheus_HRM_2025-01-21T14:30:45Z_raw.csv`
 
-### Test Structure
-- **Unit Tests**: `MorpheusImportPackage/Tests/MorpheusImportFeatureTests/` (Swift Testing framework)
-- **UI Tests**: `MorpheusImportUITests/` (XCUITest framework)
-- **Test Plan**: `MorpheusImport.xctestplan` coordinates all tests
+## Requirements
 
-## Configuration
+- iOS 17.0+
+- Xcode 15.0+
+- Swift 6.1+
+- Bluetooth Low Energy support
+- HealthKit capability
 
-### XCConfig Build Settings
-Build settings are managed through **XCConfig files** in `Config/`:
-- `Config/Shared.xcconfig` - Common settings (bundle ID, versions, deployment target)
-- `Config/Debug.xcconfig` - Debug-specific settings  
-- `Config/Release.xcconfig` - Release-specific settings
-- `Config/Tests.xcconfig` - Test-specific settings
+## Setup & Installation
 
-### Entitlements Management
-App capabilities are managed through a **declarative entitlements file**:
-- `Config/MorpheusImport.entitlements` - All app entitlements and capabilities
-- AI agents can safely edit this XML file to add HealthKit, CloudKit, Push Notifications, etc.
-- No need to modify complex Xcode project files
+1. Clone the repository
+2. Open `MorpheusImport.xcworkspace` in Xcode
+3. Build and run on device (Simulator won't have Bluetooth)
+4. Grant Bluetooth and HealthKit permissions when prompted
 
-### Asset Management
-- **App-Level Assets**: `MorpheusImport/Assets.xcassets/` (app icon, accent color)
-- **Feature Assets**: Add `Resources/` folder to SPM package if needed
+## Usage
 
-### SPM Package Resources
-To include assets in your feature package:
-```swift
-.target(
-    name: "MorpheusImportFeature",
-    dependencies: [],
-    resources: [.process("Resources")]
-)
-```
+1. **Start Scanning**: Tap "Start Scanning" to discover BLE heart rate monitors
+2. **Connect to Device**: Select your Morpheus HRM from the discovered devices list
+3. **Data Collection**: App automatically creates a new session and begins logging
+4. **View Data**: Access recorded sessions via "Files" button
+5. **Export Data**: Share session files for analysis in external tools
 
-### Generated with XcodeBuildMCP
-This project was scaffolded using [XcodeBuildMCP](https://github.com/cameroncooke/XcodeBuildMCP), which provides tools for AI-assisted iOS development workflows.
+## Permissions
+
+The app requires the following permissions:
+- **Bluetooth**: To connect to Morpheus heart rate monitor  
+- **HealthKit**: To read/write heart rate data
+- **File System**: To save raw data for analysis
+
+## Privacy & Security
+
+- All data processing happens locally on device
+- HealthKit data is encrypted and access-controlled by iOS
+- Raw BLE data files are stored in app's sandboxed Documents directory
+- No data is transmitted to external servers
+
+## Development
+
+### AI Assistant Rules
+This project includes opinionated rules files for AI coding assistants in `CLAUDE.md`. These establish:
+- Modern SwiftUI patterns (no ViewModels)
+- Swift 6 strict concurrency compliance  
+- iOS 18+ API usage preferences
+- Swift Testing framework adoption
+
+### Architecture Notes
+- **Workspace + SPM**: Clean separation between app shell and features
+- **@Observable Pattern**: Modern state management without ViewModels
+- **MainActor Isolation**: Proper concurrency for UI updates
+- **File-based Configuration**: XCConfig and entitlements management
+
+## Contributing
+
+1. Follow the coding standards defined in `CLAUDE.md`
+2. Ensure all tests pass with Swift Testing framework
+3. Maintain Swift 6 concurrency compliance
+4. Update documentation for new features
+
+## License
+
+[Add your chosen license here]
+
+---
+
+**Generated with [Claude Code](https://claude.ai/code)**
